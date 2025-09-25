@@ -9,6 +9,7 @@
                 <th>Id</th>
                 <th>Forename</th>
                 <th>Surname</th>
+                <th>Date of Birth</th>
                 <th>Email</th>
                 <th>Account Active</th>
                 <th style="width: 1px;"></th>
@@ -26,6 +27,9 @@
                     </td>
                     <td>
                         @item.Surname
+                    </td>
+                    <td>
+                        @item.DateOfBirth?.ToString("dd/MM/yyyy")
                     </td>
                     <td>
                         @item.Email
@@ -46,7 +50,7 @@
                         </div>
                     </td>
                 </tr>
-            }
+                }
         </tbody>
     </table>
 </div>
@@ -54,8 +58,8 @@
 <div>
     <div class="btn-group" role="group">
         <a asp-controller="Users" asp-action="List" class="btn btn-default">Show All</a>
-        <a href="#" class="btn btn-default">Active Only</a>
-        <a href="#" class="btn btn-default">Non Active</a>
+        <a asp-controller="Users" asp-action="ActiveOnly" class="btn btn-default">Active Only</a>
+        <a asp-controller="Users" asp-action="InactiveOnly" class="btn btn-default">Non Active</a>
     </div>
 
     <a href="#" class="btn btn-primary float-end">

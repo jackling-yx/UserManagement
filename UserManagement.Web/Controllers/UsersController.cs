@@ -10,7 +10,7 @@ public class UsersController : Controller
     private readonly IUserService _userService;
     public UsersController(IUserService userService) => _userService = userService;
 
-    [HttpGet]
+    [HttpGet("all")]
     public ViewResult List()
     {
         var items = _userService.GetAll().Select(p => new UserListItemViewModel
@@ -19,7 +19,8 @@ public class UsersController : Controller
             Forename = p.Forename,
             Surname = p.Surname,
             Email = p.Email,
-            IsActive = p.IsActive
+            IsActive = p.IsActive,
+            DateOfBirth = p.DateOfBirth
         });
 
         var model = new UserListViewModel
@@ -28,5 +29,49 @@ public class UsersController : Controller
         };
 
         return View(model);
+    }
+
+    [HttpGet("active")]
+    public ViewResult ActiveOnly()
+    {
+        var items = _userService.FilterByActive(true)
+            .Select(p => new UserListItemViewModel
+            {
+                Id = p.Id,
+                Forename = p.Forename,
+                Surname = p.Surname,
+                Email = p.Email,
+                IsActive = p.IsActive,
+                DateOfBirth = p.DateOfBirth
+            });
+
+        var model = new UserListViewModel
+        {
+            Items = items.ToList()
+        };
+
+        return View("List", model);
+    }
+
+    [HttpGet("inactive")]
+    public ViewResult InactiveOnly()
+    {
+        var items = _userService.FilterByActive(false)
+            .Select(p => new UserListItemViewModel
+            {
+                Id = p.Id,
+                Forename = p.Forename,
+                Surname = p.Surname,
+                Email = p.Email,
+                IsActive = p.IsActive,
+                DateOfBirth = p.DateOfBirth
+            });
+
+        var model = new UserListViewModel
+        {
+            Items = items.ToList()
+        };
+
+        return View("List", model);
     }
 }

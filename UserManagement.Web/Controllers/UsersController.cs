@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using UserManagement.Services.Domain.Interfaces;
 using UserManagement.Web.Models.Users;
 
@@ -73,5 +75,87 @@ public class UsersController : Controller
         };
 
         return View("List", model);
+    }
+
+    [HttpGet("add")]
+    public ViewResult AddUser()
+    {
+        return View("Add");
+    }
+
+    [HttpPost("add")]
+    [ValidateAntiForgeryToken]
+    public async Task<ActionResult> AddUser(string forename, string surname, string email, DateTime dateOfBirth)
+    {
+        //validation
+        if (string.IsNullOrWhiteSpace(forename) || string.IsNullOrWhiteSpace(surname) || string.IsNullOrWhiteSpace(email))
+        {
+            ModelState.AddModelError(string.Empty, "Forename, Surname and Email are required.");
+            return BadRequest(ModelState);
+        }
+
+        await _userService.CreateUserAsync(forename, surname, email, dateOfBirth);
+        return RedirectToAction("List");
+    }
+
+    [HttpGet("view")]
+    public async Task<ViewResult> ViewUser(long id)
+    {
+        var user = await _userService.GetUserAsync(id);
+
+        var model = new UserListItemViewModel
+            {
+                Id = user.Id,
+                Forename = user.Forename,
+                Surname = user.Surname,
+                DateOfBirth = user.DateOfBirth,
+                Email = user.Email,
+                IsActive = user.IsActive
+            };
+
+        return View("View", model);
+    }
+
+
+
+    [HttpGet("edit")]
+    public async Task<ViewResult> EditUser(long id)
+    {
+        var user = await _userService.GetUserAsync(id);
+
+        var model = new UserListItemViewModel
+        {
+            Id = id,
+            Forename = user.Forename,
+            Surname = user.Surname,
+            DateOfBirth = user.DateOfBirth,
+            Email = user.Email,
+            IsActive = user.IsActive
+        };
+
+        return View("Edit", model);
+    }
+
+    [HttpPost("edit")]
+    [ValidateAntiForgeryToken]
+    public async Task<ActionResult> EditUser(long id, string forename, string surname, string email, bool isActive, DateTime dateOfBirth)
+    {
+        //validation
+        if (string.IsNullOrWhiteSpace(forename) || string.IsNullOrWhiteSpace(surname) || string.IsNullOrWhiteSpace(email))
+        {
+            ModelState.AddModelError(string.Empty, "Forename, Surname and Email are required.");
+            return BadRequest(ModelState);
+        }
+
+        await _userService.UpdateUser(id, forename, surname, email, dateOfBirth);
+        return RedirectToAction("List");
+    }
+
+    [HttpPost("delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<ActionResult> DeleteUser(long id)
+    {
+        await _userService.DeleteUserAsync(id);
+        return RedirectToAction("List");
     }
 }

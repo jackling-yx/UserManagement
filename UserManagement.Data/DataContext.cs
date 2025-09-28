@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using UserManagement.Data.Entities;
 using UserManagement.Models;
 
 namespace UserManagement.Data;
@@ -33,10 +35,34 @@ public class DataContext : DbContext, IDataContext
     public IQueryable<TEntity> GetAll<TEntity>() where TEntity : class
         => base.Set<TEntity>();
 
+    public async Task<TEntity> GetUserAsync<TEntity>(long id) where TEntity : class
+    {
+        var user = await base.Set<TEntity>().FindAsync(new object[] { id });
+
+        if (user == null)
+        {
+            throw new InvalidOperationException($"Entity of type {typeof(TEntity)} with ID {id} not found.");
+        }
+
+        return user;
+    }
+
     public void Create<TEntity>(TEntity entity) where TEntity : class
     {
         base.Add(entity);
         SaveChanges();
+    }
+    public async Task<Result<TEntity>> CreateAsync<TEntity>(TEntity entity) where TEntity : class
+    {
+        await base.AddAsync(entity);
+        var result = await SaveChangesAsync();
+
+        if (result == 0)
+        {
+            return new Result<TEntity> { IsSuccess = false, Message = "Creation failed.", Value = entity };
+        }
+
+        return new Result<TEntity> { IsSuccess = true, Message = "Creation successful.", Value = entity };
     }
 
     public new void Update<TEntity>(TEntity entity) where TEntity : class
@@ -45,9 +71,35 @@ public class DataContext : DbContext, IDataContext
         SaveChanges();
     }
 
+    public async Task<Result<TEntity>> UpdateAsync<TEntity>(TEntity entity) where TEntity : class
+    {
+        base.Update(entity);
+        var result = await SaveChangesAsync();
+
+        if (result == 0)
+        {
+            return new Result<TEntity> { IsSuccess = false, Message = "Update failed.", Value = entity };
+        }
+
+        return new Result<TEntity> { IsSuccess = true, Message = "Update successful.", Value = entity };
+    }
+
     public void Delete<TEntity>(TEntity entity) where TEntity : class
     {
         base.Remove(entity);
         SaveChanges();
+    }
+
+    public async Task<Result<TEntity>> DeleteAsync<TEntity>(TEntity entity) where TEntity : class
+    {
+        base.Remove(entity);
+        var result = await SaveChangesAsync();
+
+        if (result == 0)
+        {
+            return new Result<TEntity> { IsSuccess = false, Message = "Delete failed.", Value = entity };
+        }
+
+        return new Result<TEntity> { IsSuccess = true, Message = "Delete successful.", Value = entity };
     }
 }

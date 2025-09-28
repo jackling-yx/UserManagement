@@ -1,0 +1,30 @@
+﻿@model UserManagement.Web.Models.Users.UserListItemViewModel
+
+<h2>@Model.Forename @Model.Surname</h2>
+
+<div class="table-responsive">
+    <div>
+        <label>Date of Birth:</label>
+        <p>@Model.DateOfBirth?.ToString("dd/MM/yyyy")</p>
+    </div>
+    <div>
+        <label>Email:</label>
+        <p>@Model.Email</p>
+    </div>
+    <div>
+        <label>Status:</label>
+        @{
+            var status = Model.IsActive ? "Active" : "Inactive";
+        }
+        <p>@status</p>
+    </div>
+</div>
+
+<div>
+    <div class="btn-group" role="group">
+        <a asp-controller="Users" asp-action="List" class="btn btn-default">Show All</a>
+        <a asp-controller="Users" asp-action="ActiveOnly" class="btn btn-default">Active Only</a>
+        <a asp-controller="Users" asp-action="InactiveOnly" class="btn btn-default">Non Active</a>
+    </div>
+</div>
+

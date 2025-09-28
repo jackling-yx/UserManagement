@@ -1,0 +1,37 @@
+﻿@model UserManagement.Web.Models.Users.UserListItemViewModel
+
+<h2>Edit</h2>
+
+<div class="table-responsive">
+    <form asp-action="EditUser">
+        <input type="hidden" asp-for="Id" value="@Model.Id"/>
+        <div>
+            <label>Forename:</label>
+            <input asp-for="Forename" class="form-control" value="@Model.Forename"/>
+        </div>
+        <div>
+            <label>Surname:</label>
+            <input asp-for="Surname" class="form-control" value="@Model.Surname" />
+        </div>
+        <div>
+            <label>Date of Birth:</label>
+            <input asp-for="DateOfBirth" type="date" class="form-control" value="@Model.DateOfBirth?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div>
+            <label>Email:</label>
+            <input asp-for="Email" class="form-control" value="@Model.Email" />
+        </div>
+        <div class="form-group">
+            <input type="submit" value="Save" />
+        </div>
+    </form>
+</div>
+
+<div>
+    <div class="btn-group" role="group">
+        <a asp-controller="Users" asp-action="List" class="btn btn-default">Show All</a>
+        <a asp-controller="Users" asp-action="ActiveOnly" class="btn btn-default">Active Only</a>
+        <a asp-controller="Users" asp-action="InactiveOnly" class="btn btn-default">Non Active</a>
+    </div>
+</div>
+

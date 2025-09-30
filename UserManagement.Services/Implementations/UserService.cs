@@ -6,13 +6,20 @@ using UserManagement.Data;
 using UserManagement.Data.Entities;
 using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
+using UserManagement.Services.Interfaces;
 
 namespace UserManagement.Services.Domain.Implementations;
 
 public class UserService : IUserService
 {
     private readonly IDataContext _dataAccess;
-    public UserService(IDataContext dataAccess) => _dataAccess = dataAccess;
+    private readonly ILogDataContext _logDataAccess;
+    private readonly ILogService _logService;
+    public UserService(IDataContext dataAccess, ILogDataContext logDataAccess, ILogService logService) {
+        _dataAccess = dataAccess;
+        _logDataAccess = logDataAccess;
+        _logService = logService;
+    }
 
     /// <summary>
     /// Return users by active state
@@ -30,7 +37,6 @@ public class UserService : IUserService
     {
         try
         {
-
             var user = new User
             {
                 Forename = forename,
@@ -42,11 +48,14 @@ public class UserService : IUserService
 
             var result = await _dataAccess.CreateAsync<User>(user);
 
+            await _logService.CreateLog(LogLevel.Information, $"User with ID: {result.Value?.Id} created");
+
             return result;
         }
         catch (Exception ex)
         {
-            return new Result<User> { IsSuccess = false, Message = ex.Message, Value = null };
+            await _logService.CreateLog(LogLevel.Error, $"Error creating user: {ex.Message}");
+            return UnsuccessfulResult(ex.Message);
         }
     }
 
@@ -57,19 +66,28 @@ public class UserService : IUserService
 
     public async Task<Result<User>> UpdateUser(long id, string forename, string surname, string email, DateTime dateOfBirth)
     {
-
-        var user = new User
+        try
         {
-            Id = id,
-            Forename = forename,
-            Surname = surname,
-            Email = email,
-            IsActive = false,
-            DateOfBirth = dateOfBirth
-        };
+            var user = new User
+            {
+                Id = id,
+                Forename = forename,
+                Surname = surname,
+                Email = email,
+                IsActive = false,
+                DateOfBirth = dateOfBirth
+            };
 
-        var result = await _dataAccess.UpdateAsync<User>(user);
-        return result;
+            var result = await _dataAccess.UpdateAsync<User>(user);
+
+            await _logService.CreateLog(LogLevel.Information, $"User with ID: {id}, updated");
+            return result;
+        }
+        catch(Exception ex)
+        {
+            await _logService.CreateLog(LogLevel.Error, $"Error updating user id {id}: {ex.Message}");
+            return UnsuccessfulResult(ex.Message);
+        }
     }
 
     public async Task<Result<User>> DeleteUserAsync(long id)
@@ -79,11 +97,34 @@ public class UserService : IUserService
             var userToDelete = await _dataAccess.GetUserAsync<User>(id);
             var result = await _dataAccess.DeleteAsync<User>(userToDelete);
 
+            await _logService.CreateLog(LogLevel.Information, $"User with ID: {id}, deleted");
             return result;
         }
-        catch
+        catch (Exception ex)
         {
-            return new Result<User> { IsSuccess = false, Message = "Delete failed.", Value = null };
+            await _logService.CreateLog(LogLevel.Error, $"Error deleting user id {id}: {ex.Message}");
+
+            return UnsuccessfulResult(ex.Message);
         }
+    }
+
+    public async Task<Result<User>> ThrowExceptionAsync()
+    {
+        try
+        {
+            _dataAccess.ThrowException();
+            return UnsuccessfulResult("Error");
+        }
+        catch (Exception ex)
+        {
+            await _logService.CreateLog(LogLevel.Error, ex.Message);
+
+            return UnsuccessfulResult(ex.Message);
+        }
+    }
+
+    private Result<User> UnsuccessfulResult(string message)
+    {
+        return new Result<User> { IsSuccess = false, Message = message, Value = null };
     }
 }

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using UserManagement.Services.Domain.Interfaces;
+using UserManagement.Services.Interfaces;
 using UserManagement.Web.Models.Users;
 
 namespace UserManagement.WebMS.Controllers;
@@ -10,7 +11,12 @@ namespace UserManagement.WebMS.Controllers;
 public class UsersController : Controller
 {
     private readonly IUserService _userService;
-    public UsersController(IUserService userService) => _userService = userService;
+    private readonly IUserValidator _userValidator;
+    public UsersController(IUserService userService, IUserValidator userValidator)
+    {
+        _userService = userService;
+        _userValidator = userValidator;
+    }
 
     [HttpGet("all")]
     public ViewResult List()
@@ -87,10 +93,9 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<ActionResult> AddUser(string forename, string surname, string email, DateTime dateOfBirth)
     {
-        //validation
-        if (string.IsNullOrWhiteSpace(forename) || string.IsNullOrWhiteSpace(surname) || string.IsNullOrWhiteSpace(email))
+        if (string.IsNullOrWhiteSpace(forename) || string.IsNullOrWhiteSpace(surname) || _userValidator.IsValidEmail(email) || _userValidator.IsAdult(dateOfBirth))
         {
-            ModelState.AddModelError(string.Empty, "Forename, Surname and Email are required.");
+            ModelState.AddModelError(string.Empty, "Forename, Surname, Email and Date of Birth are required.");
             return BadRequest(ModelState);
         }
 
@@ -102,6 +107,11 @@ public class UsersController : Controller
     public async Task<ViewResult> ViewUser(long id)
     {
         var user = await _userService.GetUserAsync(id);
+
+        if (user == null)
+        {
+            return View("List");
+        }
 
         var model = new UserListItemViewModel
             {
@@ -115,8 +125,6 @@ public class UsersController : Controller
 
         return View("View", model);
     }
-
-
 
     [HttpGet("edit")]
     public async Task<ViewResult> EditUser(long id)
@@ -156,6 +164,14 @@ public class UsersController : Controller
     public async Task<ActionResult> DeleteUser(long id)
     {
         await _userService.DeleteUserAsync(id);
+        return RedirectToAction("List");
+    }
+
+    [HttpPost("throwException")]
+    [ValidateAntiForgeryToken]
+    public async Task<ActionResult> ThrowException()
+    {
+        await _userService.ThrowExceptionAsync();
         return RedirectToAction("List");
     }
 }

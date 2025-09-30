@@ -50,7 +50,6 @@
                                         <input type="submit" value="Delete" style="all: unset" />
                                     </form>
                                  </li>
-                                @* <li><a class="dropdown-item" asp-action="DeleteUser" asp-route-id="@item.Id">Delete</a></li> *@
                             </ul>
                         </div>
                     </td>
@@ -69,6 +68,9 @@
 
     <a asp-controller="Users" asp-action="AddUser" class="btn btn-primary float-end">
         Add User
+    </a>
+    <a asp-controller="Users" asp-action="ThrowException" class="btn btn-primary float-end">
+        Create Exception
     </a>
 </div>
 

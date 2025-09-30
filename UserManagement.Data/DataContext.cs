@@ -29,8 +29,7 @@ public class DataContext : DbContext, IDataContext
             new User { Id = 10, Forename = "Johnny", Surname = "Blaze", Email = "jblaze@example.com", IsActive = true, DateOfBirth = new DateTime(1999, 10, 10) },
             new User { Id = 11, Forename = "Robin", Surname = "Feld", Email = "rfeld@example.com", IsActive = true, DateOfBirth = new DateTime(2000, 11, 11) },
         });
-
-    public DbSet<User>? Users { get; set; }
+  
 
     public IQueryable<TEntity> GetAll<TEntity>() where TEntity : class
         => base.Set<TEntity>();
@@ -41,7 +40,7 @@ public class DataContext : DbContext, IDataContext
 
         if (user == null)
         {
-            throw new InvalidOperationException($"Entity of type {typeof(TEntity)} with ID {id} not found.");
+            throw new InvalidOperationException($"{typeof(TEntity)} with ID {id} not found.");
         }
 
         return user;
@@ -52,6 +51,7 @@ public class DataContext : DbContext, IDataContext
         base.Add(entity);
         SaveChanges();
     }
+
     public async Task<Result<TEntity>> CreateAsync<TEntity>(TEntity entity) where TEntity : class
     {
         await base.AddAsync(entity);
@@ -101,5 +101,10 @@ public class DataContext : DbContext, IDataContext
         }
 
         return new Result<TEntity> { IsSuccess = true, Message = "Delete successful.", Value = entity };
+    }
+
+    public Exception ThrowException()
+    {
+        throw new Exception("User generated exception for demo");
     }
 }

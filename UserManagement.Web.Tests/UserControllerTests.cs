@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
+using UserManagement.Services.Interfaces;
 using UserManagement.Web.Models.Users;
 using UserManagement.WebMS.Controllers;
 
@@ -10,12 +12,6 @@ namespace UserManagement.Data.Tests;
 
 public class UserControllerTests
 {
-    //private readonly Mock _userService;
-
-    //public UserControllerTests()
-    //{
-    //    _userService = new Mock<IUserService>();
-    //}
 
     [Fact]
     public void List_WhenServiceReturnsUsers_ModelMustContainUsers()
@@ -90,6 +86,35 @@ public class UserControllerTests
             });
     }
 
+    [Fact]
+    public async Task View_HandlesNoUserFound()
+    {
+        var controller = CreateController();
+        var users = SetupUsers();
+
+        var result = await controller.ViewUser(99);
+        result.Model.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Add_CreatesUserSuccessfully()
+    {
+        var controller = CreateController();
+        var users = SetupUsers();
+
+        var result = await controller.AddUser("New", "User", "nuser@gmail.com", new DateTime(1991, 1, 1));
+
+        result.Model.Should().NotBeNull();
+        result.Model.Should().BeOfType<UserListItemViewModel>()
+            .Which.Should().BeEquivalentTo(new UserListItemViewModel
+            {
+                Id = 3,
+                Forename = "New",
+                Surname = "User",
+                Email = "nuser@gmail.com",
+            });
+    }
+
     private User[] SetupUsers(string forename = "Johnny", string surname = "User", string email = "juser@example.com", bool isActive = true)
     {
         var users = new[]
@@ -122,5 +147,6 @@ public class UserControllerTests
     }
 
     private readonly Mock<IUserService> _userService = new Mock<IUserService>();
-    private UsersController CreateController() => new(_userService.Object);
+    private readonly Mock<IUserValidator> _userValidator = new Mock<IUserValidator>();
+    private UsersController CreateController() => new(_userService.Object, _userValidator.Object);
 }

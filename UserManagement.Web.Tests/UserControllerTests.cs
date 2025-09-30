@@ -90,7 +90,6 @@ public class UserControllerTests
             });
     }
 
-
     private User[] SetupUsers(string forename = "Johnny", string surname = "User", string email = "juser@example.com", bool isActive = true)
     {
         var users = new[]

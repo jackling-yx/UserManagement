@@ -19,4 +19,5 @@ public interface IUserService
     Task<User> GetUserAsync(long id);
     Task<Result<User>> UpdateUser(long id, string forename, string surname, string email, DateTime dateOfBirth);
     Task<Result<User>> DeleteUserAsync(long id);
+    Task<Result<User>> ThrowExceptionAsync();
 }

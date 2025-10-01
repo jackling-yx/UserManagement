@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using UserManagement.Data.Entities;
-using UserManagement.Models;
 
 namespace UserManagement.Data;
 public class LogDataContext : DbContext, ILogDataContext

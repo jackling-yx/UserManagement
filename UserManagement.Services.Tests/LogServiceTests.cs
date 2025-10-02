@@ -24,7 +24,14 @@ public class LogServiceTests
         var logs = SetupLogs();
         long id = 1;
 
-        _logDataContext.Setup(x => x.GetLogAsync<Log>(id)).ReturnsAsync(logs.First(log => log.Id == 1));
+        var logResult = new Result<Log>
+        {
+            IsSuccess = true,
+            Message = "Success",
+            Value = logs.First(log => log.Id == id)
+        };
+
+        _logDataContext.Setup(x => x.GetLogAsync<Log>(id).Result).Returns(logResult);
 
         var result = await _logService.GetLogAsync(1);
 

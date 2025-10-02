@@ -16,14 +16,11 @@ public class UserControllerTests
     [Fact]
     public void List_WhenServiceReturnsUsers_ModelMustContainUsers()
     {
-        // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var controller = CreateController();
         var users = SetupUsers();
 
-        // Act: Invokes the method under test with the arranged parameters.
         var result = controller.List();
 
-        // Assert: Verifies that the action of the method under test behaves as expected.
         result.Model
             .Should().BeOfType<UserListViewModel>()
             .Which.Items.Should().BeEquivalentTo(users);
@@ -32,14 +29,11 @@ public class UserControllerTests
     [Fact]
     public void List_WhenServiceReturnsUsersOnlyActiveUsers()
     {
-        // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var controller = CreateController();
         var users = SetupUsers();
 
-        // Act: Invokes the method under test with the arranged parameters.
         var result = controller.ActiveOnly();
 
-        // Assert: Verifies that the action of the method under test behaves as expected.
         result.Model
             .Should().BeOfType<UserListViewModel>()
             .Which.Items.ForEach(user => user.IsActive.Should().BeTrue());
@@ -48,14 +42,11 @@ public class UserControllerTests
     [Fact]
     public void List_WhenServiceReturnsUsersOnlyInactiveUsers()
     {
-        // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var controller = CreateController();
         var users = SetupUsers();
 
-        // Act: Invokes the method under test with the arranged parameters.
         var result = controller.InactiveOnly();
 
-        // Assert: Verifies that the action of the method under test behaves as expected.
         result.Model
             .Should().BeOfType<UserListViewModel>()
             .Which.Items.ForEach(user => user.IsActive.Should().BeFalse());

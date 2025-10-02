@@ -28,9 +28,6 @@ public class DataContextTests
     [Fact]
     public async Task GetAll_WhenNewEntityAdded_MustIncludeNewEntity()
     {
-        // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
-        //var context = CreateContext();
-
         var entity = new User
         {
             Forename = "Brand New",
@@ -40,20 +37,18 @@ public class DataContextTests
 
         await _context.CreateAsync(entity);
 
-        // Act: Invokes the method under test with the arranged parameters.
         var result = _context.GetAll<User>();
 
-        // Assert: Verifies that the action of the method under test behaves as expected.
-        result
-            .Should().Contain(s => s.Email == entity.Email)
-            .Which.Should().BeEquivalentTo(entity);
+        var userResult = result.ToList().Find(user => user == entity);
+
+        userResult.Should().NotBeNull();
+        userResult.Should().BeEquivalentTo(entity);
+        result.Last().Should().BeEquivalentTo(entity);
     }
 
     [Fact]
     public async Task CreateAsync_WhenNewEntityAdded_MustIncludeNewEntity()
     {
-        // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
-        //var context = CreateContext();
         await PopulateDb(_context);
 
         var entity = new User
@@ -70,10 +65,8 @@ public class DataContextTests
 
         var newUserId = _context.GetAll<User>().Last().Id;
 
-        // Act: Invokes the method under test with the arranged parameters.
         var result = await _context.GetUserAsync<User>(newUserId);
 
-        // Assert: Verifies that the action of the method under test behaves as expected.
         result?.Forename.Should().Be("Brand New");
         result?.Surname.Should().Be("User");
         result?.Email.Should().Be("brandnewuser@example.com");
@@ -85,14 +78,11 @@ public class DataContextTests
     [Fact]
     public async Task GetAll_WhenDeleted_MustNotIncludeDeletedEntity()
     {
-        // Arrange: Initializes objects and sets the value of the data that is passed to the method under test.
         var entity = _context.GetAll<User>().First();
         await _context.DeleteAsync(entity);
 
-        // Act: Invokes the method under test with the arranged parameters.
         var result = _context.GetAll<User>();
 
-        // Assert: Verifies that the action of the method under test behaves as expected.
         result.Should().NotContain(s => s.Email == entity.Email);
         result.Should().NotContain(s => s.Id == entity.Id);
     }

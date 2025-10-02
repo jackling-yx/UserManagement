@@ -51,7 +51,7 @@ public class LogService : ILogService
         {
             var log = await _logDataAccess.GetLogAsync<Log>(id);
 
-            return new Result<Log> { IsSuccess = true, Message = "Success", Value = log };
+            return log;
         }
         catch(Exception ex)
         {

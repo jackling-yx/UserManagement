@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using UserManagement.Data.Entities;
 using UserManagement.Models;
 using UserManagement.Services.Domain.Interfaces;
 using UserManagement.Services.Interfaces;
@@ -11,7 +13,6 @@ namespace UserManagement.Data.Tests;
 
 public class UserControllerTests
 {
-
     [Fact]
     public void List_WhenServiceReturnsUsers_ModelMustContainUsers()
     {
@@ -91,7 +92,7 @@ public class UserControllerTests
         var controller = CreateController();
         var users = SetupUsers();
 
-        var result = await controller.ViewUser(99);
+        var result = await controller.ViewUser(0);
         result.Model.Should().BeNull();
     }
 
@@ -101,9 +102,71 @@ public class UserControllerTests
         var controller = CreateController();
         var users = SetupUsers();
 
-        var result = await controller.AddUser("New", "User", "nuser@gmail.com", new DateTime(1991, 1, 1));
+        var forename = "New";
+        var surname = "User";
+        var email = "nuser@example.com";
+        var dateOfBirth = new DateTime(1991, 1, 1);
+
+        _userValidator.Setup(x => x.IsValidEmail(It.IsAny<string>())).Returns(true);
+        _userValidator.Setup(x => x.IsAdult(It.IsAny<DateTime>())).Returns(true);
+
+        _userService.Setup(x => x.CreateUserAsync(forename, surname, email, dateOfBirth))
+            .ReturnsAsync(new Result<User> { IsSuccess = true, Message = "User created", Value = new User { Id = 3, Forename = forename, Surname = surname, Email = email, DateOfBirth = dateOfBirth, IsActive = false } });
+
+        var result = await controller.AddUser(forename, surname, email, dateOfBirth);
 
         result.Should().NotBeNull();
+        _userService.Verify(x => x.CreateUserAsync(forename, surname, email, dateOfBirth), Times.Once);
+    }
+
+    [Fact]
+    public async Task Add_HandlesInvalidProperties()
+    {
+        var controller = CreateController();
+        var users = SetupUsers();
+
+        var forename = "New";
+        var surname = "User";
+        var email = "nuser@example.com.";
+        var dateOfBirth = new DateTime(3000, 1, 1);
+
+        _userValidator.Setup(x => x.IsValidEmail(It.IsAny<string>())).Returns(false);
+        _userValidator.Setup(x => x.IsAdult(It.IsAny<DateTime>())).Returns(false);
+
+        _userService.Setup(x => x.CreateUserAsync(forename, surname, email, dateOfBirth))
+            .ReturnsAsync(new Result<User> { IsSuccess = true, Message = "User created", Value = new User { Id = 3, Forename = forename, Surname = surname, Email = email, DateOfBirth = dateOfBirth, IsActive = false } });
+
+
+        var result = await controller.AddUser(forename, surname, email, dateOfBirth);
+
+        result.Should().NotBeNull();
+        _userService.Verify(x => x.CreateUserAsync(forename, surname, email, dateOfBirth), Times.Never);
+    }
+
+    [Fact]
+    public async Task Delete_DeletesUserSuccessfully()
+    {
+        var controller = CreateController();
+        var users = SetupUsers();
+        var user = users.First(u => u.Id == 1);
+
+        _userService.Setup(x => x.DeleteUserAsync(1).Result).Returns(new Result<User> {  IsSuccess = true, Message = "Delete successful", Value = user });
+        var result = await controller.DeleteUser(1);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(new RedirectToActionResult("List", null, null));
+    }
+
+    [Fact]
+    public async Task Delete_HandlesNoUserFound()
+    {
+        var controller = CreateController();
+        var users = SetupUsers();
+
+        var result = await controller.DeleteUser(0);
+
+        result.Should().NotBeNull();
+        result.Should().BeEquivalentTo(new RedirectToActionResult("List", null, null));
     }
 
     private User[] SetupUsers(string forename = "Johnny", string surname = "User", string email = "juser@example.com", bool isActive = true)

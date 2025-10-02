@@ -1,4 +1,4 @@
-﻿using System;
+﻿                                                                                                                            using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +25,7 @@ public class LogDataContext : DbContext, ILogDataContext
             {
                 Id = 2,
                 Timestamp = DateTime.UtcNow,
-                Level = LogLevel.Information,
+                Level = LogLevel.Error,
                 Message = "Exception example",
                 Exception = "Fake NullReferenceException"
             },
@@ -34,16 +34,23 @@ public class LogDataContext : DbContext, ILogDataContext
     public IQueryable<TEntity> GetAll<TEntity>() where TEntity : class
         =>  base.Set<TEntity>();
 
-    public async Task<TEntity> GetLogAsync<TEntity>(long id) where TEntity : class
+    public async Task<Result<TEntity>> GetLogAsync<TEntity>(long id) where TEntity : class
     {
         var log = await base.Set<TEntity>().FindAsync(new object[] { id });
+        var notFoundMessage = $"{typeof(TEntity)} with ID {id} not found.";
 
         if (log == null)
         {
-            throw new InvalidOperationException($"{typeof(TEntity)} with ID {id} not found.");
+            await CreateLogAsync(new Log
+            {
+                Level = LogLevel.Error,
+                Message = notFoundMessage,
+            });
+
+            return new Result<TEntity> { IsSuccess = false, Message = "Log not found", Value = null };
         }
 
-        return log;
+        return new Result<TEntity> { IsSuccess = true, Message = "Log found", Value = log };
     }
 
     public async Task<Result<TEntity>> CreateLogAsync<TEntity>(TEntity entity) where TEntity : class

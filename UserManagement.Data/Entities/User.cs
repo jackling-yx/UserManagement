@@ -15,6 +15,6 @@ public class User
     [Required]
     public string Email { get; set; } = default!;
     public bool IsActive { get; set; }
-    [Required]
+    [Required(ErrorMessage = "Please enter a valid date of birth")]
     public DateTime DateOfBirth { get; set; }
 }

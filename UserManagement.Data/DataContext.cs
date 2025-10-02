@@ -84,11 +84,11 @@ public class DataContext : DbContext, IDataContext
         return new Result<TEntity> { IsSuccess = true, Message = "Update successful.", Value = entity };
     }
 
-    public void Delete<TEntity>(TEntity entity) where TEntity : class
-    {
-        base.Remove(entity);
-        SaveChanges();
-    }
+    //public void Delete<TEntity>(TEntity entity) where TEntity : class
+    //{
+    //    base.Remove(entity);
+    //    SaveChanges();
+    //}
 
     public async Task<Result<TEntity>> DeleteAsync<TEntity>(TEntity entity) where TEntity : class
     {

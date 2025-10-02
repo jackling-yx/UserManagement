@@ -25,7 +25,7 @@ public class LogsController : Controller
             Timestamp = log.Timestamp,
             Level = log.Level,
             Message = log.Message,
-            Exception = log.Exception
+            Exception = log.Exception,
         }).ToList();
 
         var model = new LogListViewModel
@@ -35,7 +35,6 @@ public class LogsController : Controller
 
         var firstPaginatedIndex = (page - 1) * ResultsPerPage;
         var lastPaginatedIndex = logs.Count % 5  == 0 ? (page * ResultsPerPage) - 1 : logs.Count;
-        logs.Skip((page - 1) * ResultsPerPage).Take(page).ToList();
 
         ViewBag.PaginatedLogs = logs.Skip((page - 1) * ResultsPerPage).Take(ResultsPerPage).ToList();
 

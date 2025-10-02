@@ -32,7 +32,7 @@ public interface IDataContext
     Task<TEntity> GetUserAsync<TEntity>(long id) where TEntity : class;
     void Update<TEntity>(TEntity entity) where TEntity : class;
     Task<Result<TEntity>> UpdateAsync<TEntity>(TEntity entity) where TEntity : class;
-    void Delete<TEntity>(TEntity entity) where TEntity : class;
+    //void Delete<TEntity>(TEntity entity) where TEntity : class;
     Task<Result<TEntity>> DeleteAsync<TEntity>(TEntity entity) where TEntity : class;
     Exception ThrowException();
 }

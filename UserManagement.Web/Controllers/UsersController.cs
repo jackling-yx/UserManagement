@@ -93,10 +93,10 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<ActionResult> AddUser(string forename, string surname, string email, DateTime dateOfBirth)
     {
-        if (string.IsNullOrWhiteSpace(forename) || string.IsNullOrWhiteSpace(surname) || _userValidator.IsValidEmail(email) || _userValidator.IsAdult(dateOfBirth))
+        if (IsUserInputValid(forename, surname, email, dateOfBirth) == false)
         {
-            ModelState.AddModelError(string.Empty, "Forename, Surname, Email and Date of Birth are required.");
-            return BadRequest(ModelState);
+            ModelState.AddModelError(string.Empty, "Form is invalid, please check and try again");
+            return View("Add");
         }
 
         await _userService.CreateUserAsync(forename, surname, email, dateOfBirth);
@@ -148,11 +148,9 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<ActionResult> EditUser(long id, string forename, string surname, string email, bool isActive, DateTime dateOfBirth)
     {
-        //validation
-        if (string.IsNullOrWhiteSpace(forename) || string.IsNullOrWhiteSpace(surname) || string.IsNullOrWhiteSpace(email))
+        if (IsUserInputValid(forename, surname, email, dateOfBirth) == false)
         {
             ModelState.AddModelError(string.Empty, "Forename, Surname and Email are required.");
-            return BadRequest(ModelState);
         }
 
         await _userService.UpdateUser(id, forename, surname, email, dateOfBirth);
@@ -163,7 +161,14 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<ActionResult> DeleteUser(long id)
     {
-        await _userService.DeleteUserAsync(id);
+        var result = await _userService.DeleteUserAsync(id);
+
+        if(result == null || !result.IsSuccess)
+        {
+            ModelState.AddModelError(string.Empty, "User not found.");
+            return RedirectToAction("List");
+        }
+
         return RedirectToAction("List");
     }
 
@@ -173,5 +178,14 @@ public class UsersController : Controller
     {
         await _userService.ThrowExceptionAsync();
         return RedirectToAction("List");
+    }
+
+    private bool IsUserInputValid(string forename, string surname, string email, DateTime dateOfBirth)
+    {
+        if (string.IsNullOrWhiteSpace(forename) || string.IsNullOrWhiteSpace(surname) || !_userValidator.IsValidEmail(email) || !_userValidator.IsAdult(dateOfBirth))
+        {
+            return false;
+        }
+        return true;
     }
 }
